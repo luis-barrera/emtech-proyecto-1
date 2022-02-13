@@ -5,6 +5,9 @@ from lifestore_file import (
     lifestore_searches
 )
 
+# TODO: solo para cuestiones de desarrollo
+import pprint
+
 #################
 # Login #########
 #################
@@ -40,7 +43,7 @@ while not usuario_autenticado:
         print(f'Hola de nuevo {input_usuario}!')
     else:
         # Si alguna de las dos credenciales es erronea le avisamos al
-        # usuario cual ha sido su error
+        # usuario cuál ha sido su error
         print("Error: ", end="")
         if input_usuario in usuarios:
             print('Te equivocaste en la contraseña')
@@ -55,13 +58,53 @@ while not usuario_autenticado:
         exit()
 
 
-# TODO: Empezar a comentar desde aquí
-# TODO: separar las ventas por fechas y luego correr todo esto que está abajo por cada mes
+#############################################
+# Separación de la ventas por fecha #########
+#############################################
+# Diccionario que almacena las ventas de acuerdo al año y el mes
+# Cada año es una entrada del dict
+# Cada año es un dict, las entradas de este son los meses
+ventas_por_fecha = {}
+
+# Separamos las fechas de cada venta en el mes y el año
 for venta in lifestore_sales:
+    # Obtenemos la fecha de la venta
     fecha = venta[3]
 
+    # Obtenemos el mes y el año del string de la fecha, el día no interesa
+    # Dividiendo el string por el símbolo "/"
     _, mes, year = fecha.split("/")
 
+    # Transformamos los strings a int
+    year = int(year)
+    mes = int(mes)
+
+    # Ahora la fecha de las compras es una lista con el año y el mes
+    venta[3] = [year, mes]
+
+    # Checamos el año esté en el dict
+    if year in ventas_por_fecha:
+        # Vemos si el mes está en el dict del año
+        if mes in ventas_por_fecha[year]:
+            if "ventas" in ventas_por_fecha[year][mes]:
+                # En cada mes, vamos a ir guardando los demás resultados en diferentes campos
+                # Agregamos la venta al campo "datos" del mes correspondiente
+                ventas_por_fecha[year][mes]["ventas"].append([venta[0], venta[1], venta[2], venta[4]])
+            else:
+                ventas_por_fecha[year][mes]["ventas"] = []
+        else:
+            # Si no está el mes agregamos un dict para el mes
+            ventas_por_fecha[year][mes] = {}
+
+    # Agregamos un dict vacio si no está el año en el dict de ventas
+    else:
+        ventas_por_fecha[year] = {}
+
+
+# TODO: pprint.pprint(ventas_por_fecha)
+
+
+# TODO: Empezar a comentar desde aquí
 ####################################
 # Productos con más ventas #########
 ####################################
