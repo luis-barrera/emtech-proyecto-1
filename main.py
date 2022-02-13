@@ -69,9 +69,15 @@ contadores_busquedas = {}
 # Lista con los productos más buscados
 prod_mas_buscados = []
 
+# Almacenar promedio de reseñas por productos
+prod_con_reviews = {}
+# Productos ordenados por sus reseñas
+prod_reviews_ordenados = []
+
 # Recorremos toda la lista de ventas
 for venta in lifestore_sales:
     id_prod = venta[1]
+    review = venta[2]
     reembolso = venta[3]
 
     # Agregamos al dict el contador para el producto o lo incrementamos
@@ -84,6 +90,18 @@ for venta in lifestore_sales:
     # Consideramos los reembolsos
     if reembolso == 1:  # Debería ser necesario con solo (if reembolso), pero lo pongo completo
         contadores_ventas[id_prod] -= 1
+
+    # Si la review fue 0, no se cuenta
+    if review != 0:
+        # Sacamos las reviews
+        # [promedio_reviews, total_reviews]
+        if id_prod in prod_con_reviews:
+            # Sacamos el promedio conforme vamos sumando
+            prod_con_reviews[id_prod] = [(prod_con_reviews[id_prod][0] + review) / 2,
+                                         prod_con_reviews[id_prod][1] + 1]
+
+        else:
+            prod_con_reviews[id_prod] = [review, 1]
 
 # Recorremos toda la lista de busquedas
 for busqueda in lifestore_searches:
@@ -105,8 +123,8 @@ for producto in lifestore_products:
     prod_categoria = producto[3]
 
     # prod_por_categorias =
-    # {categoría: [[id_product, name, price, category, stock, total_sales, total_searches], [...]]}
-    producto = producto + [0, 0]
+    # {categoría: [[id_product, name, price, category, stock, total_sales, total_searches, reviews], [...]]}
+    producto = producto + [0, 0, 0, 0]
 
     # Agregamos el número de ventas en caso de que tenga
     if id_prod in contadores_ventas:
@@ -115,6 +133,15 @@ for producto in lifestore_products:
     # Agregamos el contador de busquedas
     if id_prod in contadores_busquedas:
         producto[6] = contadores_busquedas[id_prod]
+
+    # Agregamos al producto el promedio de reviews y el contador de reviews
+    if id_prod in prod_con_reviews:
+        producto[7] = round(prod_con_reviews[id_prod][0], 2)
+        producto[8] = prod_con_reviews[id_prod][1]
+
+        # Lista fuera del dict para guardar los productos y sus reviews
+        # Solo agregamos aquellos productos que tienen una cantidad de reviews mayor a 0
+        prod_reviews_ordenados.append(producto)
 
     # Guardamos los productos en una lista fuera del dict
     prod_mas_vendidos.append(producto)
@@ -174,11 +201,27 @@ for categoria in categorias_por_ventas:
     print(" ", categoria)
     for prod in categorias_por_ventas[categoria][-5:]:
         print("   ", prod)
-print("\nProductos por categorias con menos búsquedas busquedas")
+print("\nProductos por categorias con menos búsquedas")
 for categoria in categorias_por_busquedas:
     print(" ", categoria)
     for prod in categorias_por_busquedas[categoria][-10:]:
         print("   ", prod)
+
+
+# 2: Mejores y peores reseñas
+#############################
+prod_reviews_ordenados = sorted(prod_reviews_ordenados,
+                                # Si hay dos con el mismo número de promedio, se usa el total de reviews
+                                key=lambda item: (item[7], item[8]),
+                                reverse=True)
+
+print("\nProductos con mejores reseñas")
+for prod in prod_reviews_ordenados[:5]:
+    print(" ", prod)
+
+print("\nProductos con peor reseñas")
+for prod in prod_reviews_ordenados[-5:]:
+    print(" ", prod)
 
 # # Separación de la ventas por fecha
 # ###################################
