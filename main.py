@@ -8,9 +8,9 @@ from lifestore_file import (
 # TODO: solo para cuestiones de desarrollo
 import pprint
 
-#################
-# Login #########
-#################
+# Login
+#######
+
 # Credenciales correctas
 usuarios = {"jimmy": "python"}
 max_intentos = 3
@@ -58,9 +58,9 @@ while not usuario_autenticado:
         exit()
 
 
-#############################################
-# Separación de la ventas por fecha #########
-#############################################
+# Separación de la ventas por fecha
+###################################
+
 # Diccionario que almacena las ventas de acuerdo al año y el mes
 # Cada año es una entrada del dict
 # Cada año es un dict, las entradas de este son los meses
@@ -86,80 +86,109 @@ for venta in lifestore_sales:
     if year in ventas_por_fecha:
         # Vemos si el mes está en el dict del año
         if mes in ventas_por_fecha[year]:
-            if "ventas" in ventas_por_fecha[year][mes]:
-                # En cada mes, vamos a ir guardando los demás resultados en diferentes campos
-                # Agregamos la venta al campo "datos" del mes correspondiente
-                ventas_por_fecha[year][mes]["ventas"].append([venta[0], venta[1], venta[2], venta[4]])
-            else:
-                ventas_por_fecha[year][mes]["ventas"] = []
+            # En cada mes, vamos a ir guardando los demás resultados en diferentes campos
+            # Agregamos la venta al campo "datos" del mes correspondiente
+            # [id_sale, id_product, review, refund]
+            ventas_por_fecha[year][mes]["ventas"].append([venta[0],
+                                                          venta[1],
+                                                          venta[2],
+                                                          venta[4]])
         else:
             # Si no está el mes agregamos un dict para el mes
-            ventas_por_fecha[year][mes] = {}
+            ventas_por_fecha[year][mes] = {"ventas": [[venta[0], venta[1], venta[2], venta[4]]]}
 
     # Agregamos un dict vacio si no está el año en el dict de ventas
     else:
-        ventas_por_fecha[year] = {}
-
-
-# TODO: pprint.pprint(ventas_por_fecha)
+        ventas_por_fecha[year] = {mes: {"ventas": [[venta[0], venta[1], venta[2], venta[4]]]}}
 
 
 # TODO: Empezar a comentar desde aquí
-####################################
-# Productos con más ventas #########
-####################################
-# Diccionario que lleva la cuenta de las ventas por cada producto
-contadores_ventas = {}
-# Lista con los productos más vendidos
-prod_mas_vendidos = []
-# Reseñas por productos
-prod_con_reviews = {}
+# Iteramos sobre cada año
+for year in ventas_por_fecha:
+    # Luego iteramos sobre cada mes
+    for mes in ventas_por_fecha[year]:
 
-# Recorremos toda la lista de ventas
-for venta in lifestore_sales:
-    id_prod = venta[1]
-    reembolso = venta[4]
-    review = venta[2]
+        # Ventas y reseñas por mes
+        ##########################
 
-    if id_prod in contadores_ventas:
-        contadores_ventas[id_prod] += 1
-    else:
-        contadores_ventas[id_prod] = 1
+        # Diccionario que lleva la cuenta de las ventas por cada producto
+        contadores_ventas = {}
+        # Lista con los productos más vendidos
+        prod_mas_vendidos = []
 
-    # Consideramos los reembolsos
-    if reembolso == 1:  # Debería ser necesario con solo (if reembolso), pero lo pongo completo
-        contadores_ventas[id_prod] -= 1
+        # Almacenar promedio de reseñas por productos
+        prod_con_reviews = {}
+        # Productos ordenados por sus reseñas
+        prod_reviews_ordenados = []
 
-    # Sacamos las reviews
-    if id_prod in prod_con_reviews:
-        prod_con_reviews[id_prod] = [(prod_con_reviews[id_prod][0] + review) / 2,
-                                     prod_con_reviews[id_prod][1] + 1]
-    else:
-        prod_con_reviews[id_prod] = [review, 1]
+        # Recorremos toda la lista de ventas
+        for venta in ventas_por_fecha[year][mes]["ventas"]:
+            # [id_sale, id_product, review, refund]
+            id_prod = venta[1]
+            review = venta[2]
+            reembolso = venta[3]
+
+            # Contamos las ventas del producto en ese mes
+            if id_prod in contadores_ventas:
+                contadores_ventas[id_prod] += 1
+            else:
+                contadores_ventas[id_prod] = 1
+
+            # Consideramos los reembolsos
+            if reembolso == 1:  # Debería ser necesario con solo (if reembolso), pero lo pongo completo
+                contadores_ventas[id_prod] -= 1
+
+            # Si la review fue 0, no se cuenta
+            if review != 0:
+                # Sacamos las reviews
+                if id_prod in prod_con_reviews:
+                    # Sacamos el promedio conforme vamos sumando
+                    prod_con_reviews[id_prod] = [(prod_con_reviews[id_prod][0] + review) / 2,
+                                                 prod_con_reviews[id_prod][1] + 1]
+                else:
+                    prod_con_reviews[id_prod] = [review, 1]
+
+        # Ordenamos los elementos de mayor a menor
+        ventas_ordenadas = sorted(contadores_ventas.items(),
+                                  key=lambda item: item[1],
+                                  reverse=True)
+
+        # Recorremos toda la lista de ventas
+        for venta in ventas_ordenadas:
+            # Buscamos el nombre del producto
+            for producto in lifestore_products:
+                if producto[0] == venta[0]:
+                    # [id, la cantidad de ventas, el nombre del producto]
+                    prod_mas_vendidos.append([venta[0], venta[1], producto[1]])
+                    break
+
+        ventas_por_fecha[year][mes]["mas vendidos"] = prod_mas_vendidos[:5]
+        ventas_por_fecha[year][mes]["menos vendidos"] = prod_mas_vendidos[-5:]
+
+        # Ordenamos por el promedio de reseñas
+        prod_con_reviews = sorted(prod_con_reviews.items(),
+                                      # Ordena el diccionario, basándose primero en el promedio
+                                      # de reviews, luego en la cantidad de reviews y después
+                                      # por id del producto.
+                                      key=lambda item: (item[1], item[0]),
+                                      reverse=True)
+
+        # Recorremos toda la lista de ventas
+        for prod in prod_con_reviews:
+            # Buscamos el nombre del producto
+            for producto in lifestore_products:
+                if producto[0] == prod[0]:
+                    # [id, la cantidad de ventas, el nombre del producto]
+                    prod_reviews_ordenados.append([prod[0], prod[1][0], producto[1]])
+                    break
+
+        ventas_por_fecha[year][mes]["mejores reseñas"] = prod_reviews_ordenados[:5]
+        ventas_por_fecha[year][mes]["peores reseñas"] = prod_reviews_ordenados[-5:]
 
 
-# Ordenamos los elementos de mayor a menor
-ventas_ordenadas = dict(sorted(contadores_ventas.items(),
-                               key=lambda item: item[1],
-                               reverse=True))
+pprint.pprint(ventas_por_fecha, width=200)
 
-# Agregamos a cada venta el nombre del producto y mostramos los productos
-contador = 0
 
-# print("Mostrando productos más vendidos")
-# Recorremos toda la lista de ventas
-for contador_ventas in ventas_ordenadas.items():
-    # Buscamos el nombre del producto
-    for producto in lifestore_products:
-        if producto[0] == contador_ventas[0]:
-            # [id, la cantidad de ventas, el nombre del producto]
-            prod_mas_vendidos.append([*contador_ventas, producto[1]])
-            break
-
-    if contador == 5:
-        break
-
-    contador += 1
 
 
 # TODO: mostrar los productos de mejor manera
@@ -277,21 +306,6 @@ for categoria in busq_prod_por_categorias.keys():
 #     for producto in busq_prod_por_categorias[categoria][-10:]:
 #         print(" ", producto)
 
-
-#################################
-# Reseñas por productos #########
-#################################
-prod_con_reviews_ord = sorted(prod_con_reviews.items(),
-                              # Ordena el diccionario, basándose primero en el promedio
-                              # de reviews, luego en la canidad de reviews y después por id del producto.
-                              key=lambda item: (item[1], item[0]),
-                              reverse=True)
-
-for prod in prod_con_reviews_ord[:5]:
-    print(prod)
-
-for prod in prod_con_reviews_ord[-5:]:
-    print(prod)
 
 # print(prod_por_categorias)
 # print(ventas_ordenadas.items())
