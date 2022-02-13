@@ -12,19 +12,18 @@ from lifestore_file import (
 usuarios = {"jimmy": "python"}
 max_intentos = 3
 
-# Mensaje de bienvenida y primera peticion de las credenciales
+# Mensaje de bienvenida y primera petición de las credenciales
 mensaje_bienvenida = 'Bienvenide al sistema!\nAccede con tus credenciales'
 print(mensaje_bienvenida)
 
 # Variables de control
-usuario_autenticado = False  # El usuario esta autenticado?
+# TODO: recordar cambiar esta madre
+usuario_autenticado = True  # El usuario está autenticado
 intentos = 0  # Contador de los intentos
 
 # Ciclo para controlar el acceso hasta que el usuario instroduzca las
 # credenciales correctas
-# TODO: recordar quitar esta madre
-# while not usuario_autenticado:
-while usuario_autenticado:
+while not usuario_autenticado:
     # Pedir al usuario que ingrese sus credenciales
     input_usuario = input('Usuario: ')
     input_pass = input('Contraseña: ')
@@ -56,6 +55,7 @@ while usuario_autenticado:
         exit()
 
 
+# TODO: Empezar a comentar desde aquí
 # TODO: separar las ventas por fechas y luego correr todo esto que está abajo por cada mes
 for venta in lifestore_sales:
     fecha = venta[3]
