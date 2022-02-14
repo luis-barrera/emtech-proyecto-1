@@ -19,8 +19,7 @@ mensaje_bienvenida = 'Bienvenide al sistema!\nAccede con tus credenciales'
 print(mensaje_bienvenida)
 
 # Variables de control
-# TODO: recordar cambiar esta madre
-usuario_autenticado = True  # El usuario está autenticado
+usuario_autenticado = False  # El usuario está autenticado
 intentos = 0  # Contador de los intentos
 
 # Ciclo para controlar el acceso hasta que el usuario instroduzca las
@@ -326,7 +325,6 @@ for year in ventas_por_fecha:
         ventas_por_fecha[year][mes]["Total de Ingresos"] = costo_total_mensual
         ventas_por_fecha[year][mes]["Productos vendidos"] = ventas_mensuales
 
-# TODO: Mandar también a un JSON
 # Imprimimos la cantidad de productos vendidos por mes de cada año
 print("\nVentas por año y mes")
 for year in ventas_por_fecha:
@@ -349,3 +347,4 @@ for year in ventas_por_fecha:
     suma_year = sum(item[1]["Total de Ingresos"] for item in ventas_por_fecha[year].items())
     print("  Total de ingresos en el año:", suma_year)
 
+# TODO: mandarlo a un JSON para la app de NodeJS
