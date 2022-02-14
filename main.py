@@ -5,8 +5,6 @@ from lifestore_file import (
     lifestore_searches
 )
 
-# TODO: solo para cuestiones de desarrollo
-import pprint
 import calendar
 
 # Login
